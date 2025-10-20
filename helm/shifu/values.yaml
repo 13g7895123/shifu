@@ -1,0 +1,303 @@
+# Default values for luckygo.
+# This is a YAML-formatted file.
+# Declare variables to be substituted into your templates.
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Application configuration
+app:
+  name: luckygo
+  version: "1.0.0"
+
+# Frontend configuration
+frontend:
+  enabled: true
+  image:
+    registry: "your.cr:32000"
+    repository: luckygo-frontend
+    tag: "latest"
+    pullPolicy: Always
+  
+  replicaCount: 1
+  
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+  
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 1
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  env:
+    TARGET_DOMAIN: "your.domain/api"  # Set your domain here
+    REACT_APP_API_URL: "https://your.domain/api"  # Will be set automatically based on backend service
+    DOMAIN_NAME: "your.domain"  # Will be set automatically based on ingress
+# Backend API configuration
+backend:
+  enabled: true
+  image:
+    registry: "your.cr:32000"
+    repository: luckygo-backend
+    tag: "latest"
+    pullPolicy: Always
+  
+  replicaCount: 1
+  
+  service:
+    type: ClusterIP
+    port: 3001
+    targetPort: 3001
+  
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+  
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 1
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  env:
+    NODE_ENV: production
+    PORT: "3001"
+    FRONTEND_URL: ""  # Will be set automatically based on ingress
+    # SQLite Database configuration
+    DATABASE_TYPE: "sqlite"
+    DATABASE_PATH: "/app/data/luckygo.db"
+    SQLITE_WAL_MODE: "true"
+    SQLITE_TIMEOUT: "30000"
+  
+  # Health check configuration
+  healthCheck:
+    enabled: true
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 3001
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 3001
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "luckygo-redis-password"
+  
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: ""
+    
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+  
+  replica:
+    replicaCount: 1
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: ""
+    
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+# Redis UI configuration (Redis Commander)
+redisUI:
+  enabled: true
+  image:
+    registry: "docker.io"
+    repository: "rediscommander/redis-commander"
+    tag: "latest"
+    pullPolicy: Always
+  
+  service:
+    type: ClusterIP
+    port: 8081
+  
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 100Mi
+  
+  auth:
+    username: "admin"
+    password: "luckygo-redis-ui-password"
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"  # or your preferred ingress class
+  annotations:
+    # nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "issuer"  # if using cert-manager
+  
+  hosts:
+    - host: your.domain
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /socket.io
+          pathType: Prefix
+          service: backend
+        - path: /redis-ui
+          pathType: Prefix
+          service: redis-ui
+  
+  tls:
+    - secretName: luckygo-tls
+      hosts:
+        - your.domain
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod Security Context
+# podSecurityContext:
+#   fsGroup: 2000
+
+# # Security Context
+# securityContext:
+#   capabilities:
+#     drop:
+#     - ALL
+#   readOnlyRootFilesystem: false
+#   runAsNonRoot: true
+#   runAsUser: 1000
+
+# ConfigMap for additional configurations
+config:
+  # Additional environment variables or configurations can be added here
+  additionalEnvVars: {}
+
+# Secrets
+secrets:
+  # JWT secret for authentication
+  jwtSecret: "your-jwt-secret-key-change-this-in-production"
+  
+  # Redis password (if not using the dependency chart)
+  redisPassword: "luckygo-redis-password"
+
+# Persistence for logs and data
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  mountPath: /app/logs
+
+# SQLite Database configuration
+sqlite:
+  enabled: true
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    mountPath: /app/data
+    # SQLite database file path within the mounted volume
+    databasePath: /app/data/luckygo.db
+  
+  # SQLite specific environment variables for backend
+  env:
+    DATABASE_TYPE: "sqlite"
+    DATABASE_PATH: "/app/data/luckygo.db"
+    # Enable WAL mode for better concurrent access
+    SQLITE_WAL_MODE: "true"
+    # Set SQLite timeout (milliseconds)
+    SQLITE_TIMEOUT: "30000"
+
+# Network Policies
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+  # maxUnavailable: 1
+
+# Monitoring
+monitoring:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    path: /metrics
+    
+# Testing
+tests:
+  enabled: true
+  image:
+    repository: busybox
+    tag: latest
+    pullPolicy: Always

@@ -1,0 +1,170 @@
+# Development values for luckygo.
+# This is a YAML-formatted file.
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+# Application configuration
+app:
+  name: luckygo-dev
+  version: "dev"
+
+# Frontend configuration
+frontend:
+  enabled: true
+  image:
+    registry: ""
+    repository: "luckygo/frontend"
+    tag: "dev"
+    pullPolicy: Always
+  
+  replicaCount: 1
+  
+  service:
+    type: NodePort
+    port: 80
+    targetPort: 8080
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  
+  autoscaling:
+    enabled: false
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Backend API configuration
+backend:
+  enabled: true
+  image:
+    registry: ""
+    repository: "luckygo/backend"
+    tag: "dev"
+    pullPolicy: Always
+  
+  replicaCount: 1
+  
+  service:
+    type: NodePort
+    port: 3001
+    targetPort: 3001
+  
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  
+  autoscaling:
+    enabled: false
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  env:
+    NODE_ENV: development
+    PORT: "3001"
+  
+  # Health check configuration
+  healthCheck:
+    enabled: true
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 3001
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 3001
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: false  # Disable auth for development
+  
+  master:
+    persistence:
+      enabled: false  # Disable persistence for development
+    
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  
+  replica:
+    replicaCount: 0  # No replicas in development
+
+# Ingress configuration
+ingress:
+  enabled: false  # Use NodePort for development
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod Security Context
+podSecurityContext:
+  fsGroup: 2000
+
+# Security Context
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Secrets
+secrets:
+  jwtSecret: "dev-jwt-secret-key"
+  redisPassword: "dev-redis-password"
+
+# Persistence for logs and data
+persistence:
+  enabled: false  # Disable persistence for development
+
+# Network Policies
+networkPolicy:
+  enabled: false  # Disable for development
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: false  # Disable for development
+
+# Monitoring
+monitoring:
+  enabled: false
+
+# Testing
+tests:
+  enabled: true
+  image:
+    repository: busybox
+    tag: latest
+    pullPolicy: IfNotPresent

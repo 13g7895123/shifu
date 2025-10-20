@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "luckygo.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "luckygo.labels" . | nindent 4 }}
+data:
+  # Backend environment variables
+  NODE_ENV: {{ .Values.backend.env.NODE_ENV | quote }}
+  PORT: {{ .Values.backend.env.PORT | quote }}
+  REDIS_URL: {{ include "luckygo.redisUrl" . | quote }}
+  FRONTEND_URL: {{ include "luckygo.frontendUrl" . | quote }}
+  REPOSITORY_TYPE: {{ .Values.backend.env.REPOSITORY_TYPE | quote }}
+
+  
+  {{- if .Values.sqlite.enabled }}
+  # SQLite Database configuration
+  REPOSITORY_TYPE: sqlite
+  DATABASE_TYPE: {{ .Values.backend.env.DATABASE_TYPE | default .Values.sqlite.env.DATABASE_TYPE | quote }}
+  DATABASE_PATH: {{ .Values.backend.env.DATABASE_PATH | default .Values.sqlite.env.DATABASE_PATH | quote }}
+  SQLITE_WAL_MODE: {{ .Values.backend.env.SQLITE_WAL_MODE | default .Values.sqlite.env.SQLITE_WAL_MODE | quote }}
+  SQLITE_TIMEOUT: {{ .Values.backend.env.SQLITE_TIMEOUT | default .Values.sqlite.env.SQLITE_TIMEOUT | quote }}
+  {{- end }}
+  
+  # Frontend environment variables
+  REACT_APP_API_URL: {{ include "luckygo.frontendApiUrl" . | quote }}
+  TARGET_DOMAIN: "your.domain/api"  # Set your domain here
+  REACT_APP_API_URL: "https://your.domain/api"  # Will be set automatically based on backend service
+  DOMAIN_NAME: "your.domain"  # Will be set automatically based on ingress
+
+  {{- if .Values.config.additionalEnvVars }}
+  {{- range $key, $value := .Values.config.additionalEnvVars }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}

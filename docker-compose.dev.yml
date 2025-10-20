@@ -1,0 +1,107 @@
+# Development Docker Compose - includes development tools
+
+services:
+  # Frontend Development (React)
+  luckygo-frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: luckygo-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME:-localhost:3001}
+      - REACT_APP_API_URL=http://${DOMAIN_NAME:-localhost:3001}
+      - REACT_APP_SERVER_URL=http://${DOMAIN_NAME:-localhost:3001}
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - HOST=0.0.0.0
+      - WDS_SOCKET_HOST=0.0.0.0
+      - WDS_SOCKET_PORT=3000
+      - FAST_REFRESH=true
+    volumes:
+      - ./frontend:/app
+    networks:
+      - luckygo-network
+    depends_on:
+      - luckygo-api-dev
+    stdin_open: true
+    tty: true
+
+  # Backend API Development
+  luckygo-api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: luckygo-api-dev
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+      - "9229:9229"  # Node.js debugger port
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - REDIS_URL=redis://redis:6379
+      - CHOKIDAR_USEPOLLING=true  # For file watching in Docker
+      - FRONTEND_URL=http://localhost:3000
+      - REPOSITORY_TYPE=sqlite
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - luckygo-network
+    volumes:
+      - .:/app
+      - app-logs:/app/logs
+    command: npm run dev
+    # Enable interactive mode for debugging
+    stdin_open: true
+    tty: true
+
+  # Redis for development
+  redis:
+    image: redis:7-alpine
+    container_name: luckygo-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data-dev:/data
+    networks:
+      - luckygo-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Redis Commander (Web UI for Redis)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: luckygo-redis-commander-dev
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - luckygo-network
+
+networks:
+  luckygo-network:
+    driver: bridge
+    name: luckygo-network-dev
+
+volumes:
+  redis-data-dev:
+    driver: local
+    name: luckygo-redis-data-dev
+  app-logs:
+    driver: local
+    name: luckygo-app-logs-dev

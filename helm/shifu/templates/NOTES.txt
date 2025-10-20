@@ -1,0 +1,58 @@
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.frontend.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "luckygo.fullname" . }}-frontend)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.frontend.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "luckygo.fullname" . }}-frontend'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "luckygo.fullname" . }}-frontend --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.frontend.service.port }}
+{{- else if contains "ClusterIP" .Values.frontend.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "{{ include "luckygo.frontend.selectorLabels" . }}" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+{{- end }}
+
+2. To connect to the backend API directly:
+{{- if contains "ClusterIP" .Values.backend.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "{{ include "luckygo.backend.selectorLabels" . }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:3001 to use the API"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 3001:{{ .Values.backend.service.targetPort }}
+{{- end }}
+
+3. To check the health of your deployment:
+  kubectl --namespace {{ .Release.Namespace }} get pods -l "app.kubernetes.io/instance={{ .Release.Name }}"
+
+4. To view logs:
+  # Frontend logs
+  kubectl --namespace {{ .Release.Namespace }} logs -l "{{ include "luckygo.frontend.selectorLabels" . }}" -f
+  
+  # Backend logs
+  kubectl --namespace {{ .Release.Namespace }} logs -l "{{ include "luckygo.backend.selectorLabels" . }}" -f
+
+5. To scale your deployment:
+  # Scale frontend
+  kubectl --namespace {{ .Release.Namespace }} scale deployment {{ include "luckygo.fullname" . }}-frontend --replicas=3
+  
+  # Scale backend
+  kubectl --namespace {{ .Release.Namespace }} scale deployment {{ include "luckygo.fullname" . }}-backend --replicas=3
+
+{{- if .Values.redis.enabled }}
+6. Redis connection details:
+  Redis is deployed as part of this chart and is accessible at:
+  {{ .Release.Name }}-redis-master:6379
+{{- end }}
+
+Thank you for installing {{ .Chart.Name }}!
+Your release is named {{ .Release.Name }}.
+To learn more about the release, try:
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}

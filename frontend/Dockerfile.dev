@@ -1,0 +1,27 @@
+# Frontend Development Dockerfile
+FROM node:18-alpine
+
+# Install bash for the entrypoint script
+RUN apk add --no-cache bash
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy entrypoint script
+COPY entrypoint-dev.sh /entrypoint-dev.sh
+RUN chmod +x /entrypoint-dev.sh
+
+# Expose port
+EXPOSE 3000
+
+# Set environment for React dev server
+ENV HOST=0.0.0.0
+ENV CHOKIDAR_USEPOLLING=true
+ENV WATCHPACK_POLLING=true
+ENV WDS_SOCKET_HOST=0.0.0.0
+
+# Use custom entrypoint
+ENTRYPOINT ["/entrypoint-dev.sh"]

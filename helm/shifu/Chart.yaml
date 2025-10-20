@@ -1,0 +1,22 @@
+apiVersion: v2
+name: luckygo
+description: A Helm chart for luckygo gaming application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+home: https://github.com/your-org/luckygo
+maintainers:
+  - name: Your Name
+    email: your.email@example.com
+keywords:
+  - gaming
+  - express
+  - react
+  - redis
+sources:
+  - https://github.com/your-org/luckygo
+dependencies:
+  - name: redis
+    version: 18.x.x
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled

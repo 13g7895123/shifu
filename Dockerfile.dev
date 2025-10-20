@@ -1,0 +1,45 @@
+# Development Dockerfile with hot reload
+FROM node:18-alpine AS development
+
+# Set working directory
+WORKDIR /app
+
+# Install development dependencies and build tools for SQLite3
+RUN apk add --no-cache \
+    git \
+    python3 \
+    make \
+    g++ \
+    sqlite \
+    sqlite-dev
+
+# Create non-root user with same UID as host (for better file permissions)
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S luckygo -u 1001
+
+# Copy package files first (for better Docker layer caching)
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies)
+# Force rebuild sqlite3 for current architecture
+RUN npm install
+RUN npm rebuild sqlite3 --verbose
+RUN npm ls sqlite3
+
+# Install ts-node-dev globally for better performance
+RUN npm install -g ts-node-dev
+
+# Create logs directory
+RUN mkdir -p logs
+
+# Set ownership of /app directory
+RUN chown -R luckygo:nodejs /app
+
+# Switch to non-root user
+USER luckygo
+
+# Expose port and debugger port
+EXPOSE 3000 9229
+
+# Start development server with file watching
+CMD ["npm", "run", "dev"]

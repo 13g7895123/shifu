@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Socket.IO 連接測試</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Socket.IO 連接測試</h1>
+    <div id="status">連接中...</div>
+    <div id="log"></div>
+
+    <script>
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+        
+        function addLog(message) {
+            const div = document.createElement('div');
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(div);
+            console.log(message);
+        }
+
+        const socket = io('http://localhost:3001', {
+            withCredentials: true,
+            transports: ['websocket', 'polling']
+        });
+
+        socket.on('connect', () => {
+            status.textContent = '已連接';
+            addLog('Connected to server, socket ID: ' + socket.id);
+            
+            // 測試認證
+            socket.emit('authenticate', { gameId: 'asd' });
+        });
+
+        socket.on('disconnect', (reason) => {
+            status.textContent = '已斷開: ' + reason;
+            addLog('Disconnected: ' + reason);
+        });
+
+        socket.on('authenticated', (data) => {
+            addLog('Authenticated: ' + JSON.stringify(data));
+        });
+
+        socket.on('message_history', (messages) => {
+            addLog('Received message history: ' + messages.length + ' messages');
+        });
+
+        socket.onAny((event, ...args) => {
+            addLog('Event: ' + event + ', Data: ' + JSON.stringify(args));
+        });
+
+        socket.on('connect_error', (error) => {
+            status.textContent = '連接錯誤';
+            addLog('Connection error: ' + error.message);
+        });
+    </script>
+</body>
+</html>
