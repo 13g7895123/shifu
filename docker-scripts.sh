@@ -76,7 +76,8 @@ prod_up() {
     fi
     docker compose up -d
     log_success "Production environment started!"
-    log_info "Application: http://localhost:3000"
+    log_info "Frontend: http://localhost:80"
+    log_info "Backend API: http://localhost:3001"
 }
 
 prod_up_nginx() {
