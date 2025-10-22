@@ -48,7 +48,6 @@ interface UserPrizeGroup {
 
 const ShippingManagePage: React.FC = () => {
   const [prizes, setPrizes] = useState<PrizeWithUser[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -84,10 +83,9 @@ const ShippingManagePage: React.FC = () => {
         if (!usersResponse.ok) {
           throw new Error('無法獲取用戶列表');
         }
-        
+
         const usersData = await usersResponse.json();
-        setUsers(usersData.data?.users || usersData);
-        
+
         // 為每個獎勵添加用戶資訊
         const prizesWithUsers: PrizeWithUser[] = (prizesData.data || prizesData).map((prize: Prize) => ({
           ...prize,

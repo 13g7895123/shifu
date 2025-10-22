@@ -28,11 +28,10 @@ interface Game {
 
 const GameIndexPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const [currentGame, setCurrentGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTicket, setSelectedTicket] = useState<number | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [liveStreamSettings, setLiveStreamSettings] = useState<LiveStreamSettings>({
@@ -104,7 +103,6 @@ const GameIndexPage: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        setSelectedTicket(ticketNumber);
         alert(`票券 #${ticketNumber} 購買成功！`);
         // 重新載入遊戲資料以更新票券狀態
         loadCurrentGame();

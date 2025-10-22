@@ -16,8 +16,7 @@ services:
     networks:
       - luckygo-network
     environment:
-      - REACT_APP_API_URL=http://localhost:3001
-      - DOMAIN_NAME=${DOMAIN_NAME:-localhost:3001}01}
+      - DOMAIN_NAME=${DOMAIN_NAME:-localhost:3001}
       - REACT_APP_API_URL=http://${DOMAIN_NAME:-localhost:3001}
 
   # Backend API

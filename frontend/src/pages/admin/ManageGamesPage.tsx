@@ -775,8 +775,8 @@ const ManageGamesPage: React.FC = () => {
                                 <span className={getStatusBadgeClass(game)} style={{fontSize: '0.75rem'}}>
                                   {getGameStatus(game)}
                                 </span>
-                                <span className={`badge ${game.purchasingStopped || game.status != 'active' ? 'bg-danger' : 'bg-success'}`} style={{fontSize: '0.75rem'}}>
-                                  {game.purchasingStopped || game.status != 'active' ? '停止購買' : '可購買'}
+                                <span className={`badge ${game.purchasingStopped || game.status !== 'active' ? 'bg-danger' : 'bg-success'}`} style={{fontSize: '0.75rem'}}>
+                                  {game.purchasingStopped || game.status !== 'active' ? '停止購買' : '可購買'}
                                 </span>
                               </div>
                             </div>

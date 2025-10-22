@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { chatService } from '../services/chatService';
-import { ChatMessage, ChatUser } from '../types/chat';
+import { ChatMessage } from '../types/chat';
 import './ChatRoom.css';
 
 interface ChatRoomProps {
@@ -13,7 +13,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ className = '' }) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
-  const [currentUser, setCurrentUser] = useState<ChatUser | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string>('');
@@ -60,7 +59,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ className = '' }) => {
     if (!user && isAuthenticated) {
       console.log('ChatRoom: User logged out, clearing auth state');
       setIsAuthenticated(false);
-      setCurrentUser(null);
       setError('用戶已登出');
     }
   }, [user, isConnected, isAuthenticated]);
@@ -81,7 +79,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ className = '' }) => {
 
     // Reset states for fresh connection
     setMessages([]);
-    setCurrentUser(null);
     setIsConnected(false);
     setIsAuthenticated(false);
     setError('');
@@ -107,7 +104,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ className = '' }) => {
     unsubscribeCallbacks.push(
       chatService.onAuthenticated((chatUser) => {
         console.log('ChatRoom: Authenticated successfully', chatUser);
-        setCurrentUser(chatUser);
         setIsAuthenticated(true);
         setError('');
       })
@@ -157,15 +153,10 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ className = '' }) => {
 
     // Initialize with a small delay to ensure everything is ready
     const timer = setTimeout(initializeChat, 100);
-    
-    // Cleanup
-    return () => {
-      clearTimeout(timer);
-      unsubscribeCallbacks.forEach(unsubscribe => unsubscribe());
-    };
 
     // Cleanup
     return () => {
+      clearTimeout(timer);
       unsubscribeCallbacks.forEach(unsubscribe => unsubscribe());
     };
   }, [user]);

@@ -82,10 +82,6 @@ const GameTickets: React.FC<GameTicketsProps> = ({ game, onTicketClick, refreshT
     );
   };
 
-  // 獲取票券購買者信息
-  const getTicketPurchaser = (ticketNumber: number) => {
-    return purchasedTickets.find(ticket => ticket.ticketNumber === ticketNumber);
-  };
 
   // 生成票卷格子
   const renderTickets = () => {
@@ -94,8 +90,7 @@ const GameTickets: React.FC<GameTicketsProps> = ({ game, onTicketClick, refreshT
     for (let i = 1; i <= tickets; i++) {
       const isPurchased = isTicketPurchased(i);
       const isPurchasedByCurrentUser = isTicketPurchasedByCurrentUser(i);
-      const purchaser = getTicketPurchaser(i);
-      
+
       // 決定按鈕樣式
       let buttonClass = 'btn w-100 d-flex align-items-center justify-content-center ';
       let titleText = '';
