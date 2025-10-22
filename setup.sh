@@ -10,7 +10,8 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
+# 檢查 Docker Compose 是否可用（新版 plugin 或舊版 docker-compose）
+if ! docker compose version &> /dev/null && ! command -v docker-compose &> /dev/null; then
     echo "❌ Docker Compose 未安裝，請先安裝 Docker Compose"
     exit 1
 fi
@@ -29,7 +30,7 @@ if [ ! -f frontend/.env ]; then
 fi
 
 echo "🐳 啟動開發環境..."
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml up -d
 
 echo ""
 echo "🎉 設定完成！"
@@ -39,4 +40,4 @@ echo "🔧 後端API: http://localhost:3001"
 echo "📊 API健康檢查: http://localhost:3001/health"
 echo "🗄️ Redis Commander: http://localhost:8081"
 echo ""
-echo "停止服務請運行: docker-compose -f docker-compose.dev.yml down"
+echo "停止服務請運行: docker compose -f docker-compose.dev.yml down"

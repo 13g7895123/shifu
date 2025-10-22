@@ -36,7 +36,12 @@ check_dependencies() {
         exit 1
     fi
 
-    if ! command -v docker-compose &> /dev/null; then
+    # Check for new docker compose (plugin) or old docker-compose
+    if docker compose version &> /dev/null; then
+        log_info "Using Docker Compose plugin (docker compose)"
+    elif command -v docker-compose &> /dev/null; then
+        log_warning "Using legacy docker-compose. Consider upgrading to Docker Compose V2 plugin."
+    else
         log_error "Docker Compose is not installed. Please install Docker Compose first."
         exit 1
     fi
@@ -46,7 +51,7 @@ check_dependencies() {
 dev_up() {
     log_info "Starting development environment..."
     cp .env.example .env 2>/dev/null || true
-    docker-compose -f docker-compose.dev.yml up -d
+    docker compose -f docker-compose.dev.yml up -d
     log_success "Development environment started!"
     log_info "Application: http://localhost:3000"
     log_info "Redis Commander: http://localhost:8081"
@@ -54,12 +59,12 @@ dev_up() {
 
 dev_down() {
     log_info "Stopping development environment..."
-    docker-compose -f docker-compose.dev.yml down
+    docker compose -f docker-compose.dev.yml down
     log_success "Development environment stopped!"
 }
 
 dev_logs() {
-    docker-compose -f docker-compose.dev.yml logs -f
+    docker compose -f docker-compose.dev.yml logs -f
 }
 
 # Production environment
@@ -69,7 +74,7 @@ prod_up() {
         log_warning "No .env file found. Copying from .env.docker"
         cp .env.docker .env
     fi
-    docker-compose up -d
+    docker compose up -d
     log_success "Production environment started!"
     log_info "Application: http://localhost:3000"
 }
@@ -80,25 +85,25 @@ prod_up_nginx() {
         log_warning "No .env file found. Copying from .env.docker"
         cp .env.docker .env
     fi
-    docker-compose --profile production up -d
+    docker compose --profile production up -d
     log_success "Production environment with Nginx started!"
     log_info "Application: http://localhost:80"
 }
 
 prod_down() {
     log_info "Stopping production environment..."
-    docker-compose down
+    docker compose down
     log_success "Production environment stopped!"
 }
 
 prod_logs() {
-    docker-compose logs -f
+    docker compose logs -f
 }
 
 # Utility functions
 build() {
     log_info "Building Docker images..."
-    docker-compose build
+    docker compose build
     log_success "Images built successfully!"
 }
 
@@ -107,8 +112,8 @@ clean() {
     read -r response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         log_info "Cleaning up Docker resources..."
-        docker-compose -f docker-compose.dev.yml down --rmi all --volumes --remove-orphans 2>/dev/null || true
-        docker-compose down --rmi all --volumes --remove-orphans 2>/dev/null || true
+        docker compose -f docker-compose.dev.yml down --rmi all --volumes --remove-orphans 2>/dev/null || true
+        docker compose down --rmi all --volumes --remove-orphans 2>/dev/null || true
         docker system prune -f
         log_success "Cleanup completed!"
     else
@@ -119,17 +124,17 @@ clean() {
 status() {
     log_info "Checking service status..."
     echo "=== Development Services ==="
-    docker-compose -f docker-compose.dev.yml ps 2>/dev/null || echo "Development environment not running"
+    docker compose -f docker-compose.dev.yml ps 2>/dev/null || echo "Development environment not running"
     echo ""
     echo "=== Production Services ==="
-    docker-compose ps 2>/dev/null || echo "Production environment not running"
+    docker compose ps 2>/dev/null || echo "Production environment not running"
 }
 
 backup_redis() {
     log_info "Creating Redis backup..."
-    docker-compose exec -T redis redis-cli BGSAVE
-    docker-compose exec -T redis sh -c 'while [ $(redis-cli LASTSAVE) -eq $(redis-cli LASTSAVE) ]; do sleep 1; done'
-    docker cp $(docker-compose ps -q redis):/data/dump.rdb ./redis-backup-$(date +%Y%m%d-%H%M%S).rdb
+    docker compose exec -T redis redis-cli BGSAVE
+    docker compose exec -T redis sh -c 'while [ $(redis-cli LASTSAVE) -eq $(redis-cli LASTSAVE) ]; do sleep 1; done'
+    docker cp $(docker compose ps -q redis):/data/dump.rdb ./redis-backup-$(date +%Y%m%d-%H%M%S).rdb
     log_success "Redis backup created!"
 }
 

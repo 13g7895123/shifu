@@ -4,7 +4,9 @@
 
 ### 系統需求
 - Docker 20.10 或更新版本
-- Docker Compose 1.29 或更新版本
+- Docker Compose V2 (plugin) 或更新版本
+  - 新版語法：`docker compose`（推薦）
+  - 舊版語法：`docker-compose`（仍支援，但建議升級）
 - 至少 2GB 可用記憶體
 - 至少 10GB 可用磁碟空間
 
