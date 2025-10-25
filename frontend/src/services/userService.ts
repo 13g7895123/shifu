@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { User, AddPointsRequest, AddPointsResponse, UpdateProfileRequest, UpdateProfileResponse } from '../types/user';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+// 優先使用 REACT_APP_BACKEND_API_URL，若無則使用 REACT_APP_API_URL，最後才使用預設值
+const API_BASE_URL = process.env.REACT_APP_BACKEND_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 // 設定 axios 預設配置
 axios.defaults.baseURL = API_BASE_URL;

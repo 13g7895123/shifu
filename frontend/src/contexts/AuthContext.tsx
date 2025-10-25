@@ -38,7 +38,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   // 設置 axios 預設配置
-  axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+  // 優先使用 REACT_APP_BACKEND_API_URL，若無則使用 REACT_APP_API_URL，最後才使用預設值
+  axios.defaults.baseURL = process.env.REACT_APP_BACKEND_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:3001';
   axios.defaults.withCredentials = true;
 
   useEffect(() => {
