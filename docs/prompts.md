@@ -5,3 +5,5 @@
 5. 承4，幫我確認一下，是否可以幫我寫一支sh，可以執行docker-compose，並且要完整功能，先確認是否有container存在，存在的話先關閉再執行，否則直接執行，且要確認資料表有建立，seeder相關功能也要完善，可以直接完整使用該application
 6. 幫我確認一下該專案的後端怎麼寫api路徑的，那api的domain在哪裡設定的
 7. 幫我調整一下，.env.docker多一個後端API的路徑設定，並確保專案都吃這個設定，請幫我從頭到尾確認一遍前端專案，我目前改完還是看到打的api是localhost:3001
+8. deploy-full.sh幫我確認一下目前這支是否會套用最新的.env檔案
+9. 幫我評估一下，是否可以把所有對外的port寫入.env.prod中，並且以deploy-full.sh為基底，寫一支production.sh讓我可以使用，且docker-compose也改寫一支給production使用
